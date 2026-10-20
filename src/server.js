@@ -1,9 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { config } from './config.js';
-import { getWork, listWorks, readWorkEntry } from './works.js';
+import { getWork, findWorks, readWorkEntry } from './works.js';
 import { homePage, messagePage, notFoundPage, readerPage } from './render.js';
 
 const publicDir = path.join(config.root, 'public');
@@ -39,19 +40,81 @@ function sendHtml(res, status, html) {
   res.status(status).type('html').send(html);
 }
 
+const shelfPasses = new Map();
+const shelfAttempts = new Map();
+const shelfPassTtl = 5 * 60 * 1000;
+const shelfWindow = 15 * 60 * 1000;
+const shelfAttemptLimit = 60;
+
+function shelfCookie(token, maxAge) {
+  return `amer-shelf=${token}; HttpOnly; SameSite=Strict; Path=/opere; Max-Age=${maxAge}`;
+}
+
+function readShelfCookie(req) {
+  const header = req.get('cookie') || '';
+  for (const part of header.split(';')) {
+    const [key, ...rest] = part.trim().split('=');
+    if (key === 'amer-shelf') return rest.join('=');
+  }
+  return '';
+}
+
+function issueShelfPass(res) {
+  const now = Date.now();
+  for (const [token, expires] of shelfPasses) {
+    if (expires <= now) shelfPasses.delete(token);
+  }
+  const token = crypto.randomBytes(32).toString('hex');
+  shelfPasses.set(token, now + shelfPassTtl);
+  res.setHeader('Set-Cookie', shelfCookie(token, Math.floor(shelfPassTtl / 1000)));
+}
+
+function takeShelfPass(token) {
+  if (typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) return false;
+  const expires = shelfPasses.get(token);
+  if (expires === undefined) return false;
+  shelfPasses.delete(token);
+  return expires > Date.now();
+}
+
+function allowShelfCheck(ip) {
+  const now = Date.now();
+  if (shelfAttempts.size > 500) {
+    for (const [key, times] of shelfAttempts) {
+      if (!times.some((time) => now - time < shelfWindow)) shelfAttempts.delete(key);
+    }
+  }
+  const hits = (shelfAttempts.get(ip) || []).filter((time) => now - time < shelfWindow);
+  if (hits.length >= shelfAttemptLimit) {
+    shelfAttempts.set(ip, hits);
+    return false;
+  }
+  hits.push(now);
+  shelfAttempts.set(ip, hits);
+  return true;
+}
+
 app.get('/', (req, res) => {
+  issueShelfPass(res);
   sendHtml(res, 200, homePage());
 });
 
-app.get('/opere', wrap(async (req, res) => {
-  const works = await listWorks();
+app.use(express.json({ limit: '16kb' }));
+
+app.post('/opere', wrap(async (req, res) => {
+  res.setHeader('Set-Cookie', shelfCookie('', 0));
   res.setHeader('Cache-Control', 'no-store');
-  res.json({
-    works: works.map((work) => ({
-      slug: work.slug,
-      author: work.author || '',
-    })),
-  });
+  if (!allowShelfCheck(req.ip) || !takeShelfPass(readShelfCookie(req))) {
+    res.status(403).end();
+    return;
+  }
+  const slugs = req.body?.slugs;
+  if (!Array.isArray(slugs)) {
+    res.status(400).end();
+    return;
+  }
+  const works = await findWorks(slugs);
+  res.json({ works });
 }));
 
 /*

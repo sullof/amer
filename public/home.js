@@ -26,7 +26,13 @@
     if (!books.length) return books;
     let response;
     try {
-      response = await fetch('/opere', { cache: 'no-store' });
+      response = await fetch('/opere', {
+        method: 'POST',
+        cache: 'no-store',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slugs: books.map((book) => book.slug) }),
+      });
     } catch {
       return books;
     }

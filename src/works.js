@@ -113,6 +113,32 @@ export async function getWork(slug) {
   return works.find((work) => work.slug === slug) ?? null;
 }
 
+export async function findWorks(slugs) {
+  if (!Array.isArray(slugs)) return [];
+  const wanted = [];
+  const seen = new Set();
+  for (const slug of slugs) {
+    if (!isSafeSlug(slug) || seen.has(slug)) continue;
+    seen.add(slug);
+    wanted.push(slug);
+    if (wanted.length >= 40) break;
+  }
+
+  const found = [];
+  for (const slug of wanted) {
+    const filePath = path.resolve(config.worksDir, `${slug}.epub`);
+    try {
+      const stat = await fs.stat(filePath);
+      if (!stat.isFile()) continue;
+      const meta = await metaFor(filePath);
+      found.push({ slug, author: meta.author || '' });
+    } catch {
+      continue;
+    }
+  }
+  return found;
+}
+
 function safeZipPath(raw) {
   let decoded = raw;
   try {
