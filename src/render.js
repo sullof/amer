@@ -51,7 +51,7 @@ export function homePage() {
 }
 
 export function readerPage(work) {
-  const canonical = `${config.siteUrl}/leggi/${encodeURIComponent(work.slug)}`;
+  const canonical = `${config.siteUrl}/${encodeURIComponent(work.slug)}`;
   const tabTitle = work.author ? `${work.title} – ${work.author}` : work.title;
   return `<!DOCTYPE html>
 <html lang="it">
@@ -64,7 +64,7 @@ export function readerPage(work) {
   <link rel="icon" href="${favicon}">
   <link rel="stylesheet" href="/reader.css">
 </head>
-<body class="chrome-hidden" data-theme="light" data-slug="${esc(work.slug)}" data-revision="${esc(work.revision)}" data-book="/opere/${encodeURIComponent(work.slug)}/libro.epub?v=${encodeURIComponent(work.revision)}" data-title="${esc(work.title)}" data-author="${esc(work.author)}">
+<body class="chrome-hidden" data-theme="light" data-slug="${esc(work.slug)}" data-revision="${esc(work.revision)}" data-book="/lettura/${encodeURIComponent(work.slug)}/" data-title="${esc(work.title)}" data-author="${esc(work.author)}">
   <button type="button" id="sidebar-backdrop" hidden aria-label="Chiudi il menu"></button>
   <aside id="sidebar">
     <div id="panels">
@@ -114,9 +114,12 @@ export function readerPage(work) {
       </fieldset>
       <fieldset>
         <legend>Tema</legend>
-        <button type="button" data-theme-choice="light" aria-pressed="true">Chiaro</button>
-        <button type="button" data-theme-choice="sepia">Seppia</button>
-        <button type="button" data-theme-choice="night">Notte</button>
+        <div id="themes">
+          <button type="button" data-theme-choice="light" aria-pressed="true" aria-label="Chiaro"></button>
+          <button type="button" data-theme-choice="sepia" aria-label="Seppia"></button>
+          <button type="button" data-theme-choice="green" aria-label="Verde"></button>
+          <button type="button" data-theme-choice="night" aria-label="Notte"></button>
+        </div>
       </fieldset>
       <fieldset>
         <legend>Lettura</legend>

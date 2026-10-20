@@ -68,7 +68,7 @@
     for (const book of books) {
       const item = document.createElement('li');
       const link = document.createElement('a');
-      link.href = `/leggi/${encodeURIComponent(book.slug)}`;
+      link.href = `/${encodeURIComponent(book.slug)}`;
       const text = document.createElement('span');
       text.className = 'shelf-text';
       const title = document.createElement('span');

@@ -1,9 +1,10 @@
-const themeOrder = ['light', 'sepia', 'night'];
+const themeOrder = ['light', 'sepia', 'green', 'night'];
 const fontMin = 80;
 const fontMax = 180;
 const fontStep = 5;
 const palette = {
   sepia: ['#f4ecd8', '#5b4636', '#8a4b08'],
+  green: ['#c5e4d6', '#1c3328', '#1a6b45'],
   night: ['#1c1c1c', '#dedede', '#9ec1ff'],
 };
 

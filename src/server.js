@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { config } from './config.js';
-import { getWork, listWorks } from './works.js';
+import { getWork, listWorks, readWorkEntry } from './works.js';
 import { homePage, messagePage, notFoundPage, readerPage } from './render.js';
 
 const publicDir = path.join(config.root, 'public');
@@ -43,15 +43,6 @@ app.get('/', (req, res) => {
   sendHtml(res, 200, homePage());
 });
 
-app.get('/leggi/:slug', wrap(async (req, res) => {
-  const work = await getWork(req.params.slug);
-  if (!work) {
-    sendHtml(res, 404, notFoundPage());
-    return;
-  }
-  sendHtml(res, 200, readerPage(work));
-}));
-
 app.get('/opere', wrap(async (req, res) => {
   const works = await listWorks();
   res.setHeader('Cache-Control', 'no-store');
@@ -63,6 +54,7 @@ app.get('/opere', wrap(async (req, res) => {
   });
 }));
 
+/*
 app.get('/opere/:slug/libro.epub', wrap(async (req, res, next) => {
   const work = await getWork(req.params.slug);
   if (!work) {
@@ -75,7 +67,31 @@ app.get('/opere/:slug/libro.epub', wrap(async (req, res, next) => {
     next(error);
   });
 }));
+*/
 
+app.get(/^\/lettura\/([^/]+)\/(.+)$/, wrap(async (req, res) => {
+  let slug = req.params[0];
+  try {
+    slug = decodeURIComponent(slug);
+  } catch {
+    res.status(404).end();
+    return;
+  }
+  const entry = await readWorkEntry(slug, req.params[1]);
+  if (!entry) {
+    res.status(404).end();
+    return;
+  }
+  res.status(200);
+  res.setHeader('Content-Type', entry.mediaType);
+  res.setHeader('Content-Length', entry.data.length);
+  res.setHeader('Content-Disposition', 'inline');
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.end(entry.data);
+}));
+
+/*
 app.get('/opere/:slug/copertina', wrap(async (req, res) => {
   const work = await getWork(req.params.slug);
   if (!work?.cover) {
@@ -86,6 +102,7 @@ app.get('/opere/:slug/copertina', wrap(async (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.send(work.cover.data);
 }));
+*/
 
 app.get('/vendor/:file', (req, res, next) => {
   const filePath = vendorFiles[req.params.file];
@@ -98,6 +115,15 @@ app.get('/vendor/:file', (req, res, next) => {
     next(error);
   });
 });
+
+app.get('/:slug', wrap(async (req, res) => {
+  const work = await getWork(req.params.slug);
+  if (!work) {
+    sendHtml(res, 404, notFoundPage());
+    return;
+  }
+  sendHtml(res, 200, readerPage(work));
+}));
 
 app.use((req, res) => {
   sendHtml(res, 404, notFoundPage());
