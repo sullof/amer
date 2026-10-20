@@ -1,0 +1,520 @@
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/fonts/opendyslexic-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root { color-scheme: light; }
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  overflow: hidden;
+  background: #4e4e4e;
+  color: #4f4f4f;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+}
+
+button, input { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+
+#main {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+#titlebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  height: 8%;
+  min-height: 46px;
+  padding: 0 1rem;
+  background: #fff;
+  color: #4f4f4f;
+  font-weight: 400;
+  z-index: 5;
+}
+
+#titlebar button,
+#titlebar a {
+  padding: 0.2rem 0.35rem;
+  background: none;
+  border: 0;
+  color: inherit;
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#titlebar button:hover,
+#titlebar a:hover { opacity: 0.75; }
+
+#opener { justify-self: start; }
+
+#metainfo {
+  margin: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#book-title { font-weight: 600; }
+
+#title-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+#close {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+#percent {
+  margin: 0;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-align: center;
+  opacity: 0.38;
+}
+
+#viewer {
+  width: 80%;
+  height: 100%;
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
+.epub-container,
+.epub-container iframe {
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+#divider {
+  position: absolute;
+  top: 12%;
+  bottom: 14%;
+  left: 50%;
+  z-index: 2;
+  width: 1px;
+  background: #000;
+  box-shadow: -2px 0 15px rgba(0, 0, 0, 0.45);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  margin: 0;
+  padding: 0 0.35rem;
+  border: 0;
+  background: none;
+  appearance: none;
+  box-shadow: none;
+  color: transparent;
+  font-family: Arial, sans-serif;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.arrow:hover,
+.arrow:active,
+.arrow:focus { color: transparent; background: transparent; }
+
+.arrow.shown { color: #bdbdbd; }
+
+.arrow:disabled { cursor: default; }
+
+#prev { left: 0.3rem; }
+#next { right: 0.3rem; }
+
+#loader,
+#reader-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+
+#reader-error { display: none; }
+#reader-error:not([hidden]) { display: block; }
+
+#footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  min-height: 3.2rem;
+  padding: 0.35rem 8% 0.55rem;
+  background: #fff;
+}
+
+#percent,
+#scrub-row { grid-area: 1 / 1; }
+
+#scrub-row {
+  display: none;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+#scrub {
+  flex: 1;
+  width: auto;
+  margin: 0;
+  accent-color: #777;
+}
+
+#scrub-undo,
+#scrub-redo {
+  flex: none;
+  width: 2rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#scrub-undo:disabled,
+#scrub-redo:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.chrome-hit {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 4;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+}
+
+.chrome-hit:focus,
+.chrome-hit:focus-visible { outline: none; }
+
+#chrome-top { top: 0; height: 8%; min-height: 46px; }
+#chrome-bottom { bottom: 0; height: 3.4rem; }
+
+#chrome-dismiss {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+}
+
+#chrome-dismiss:focus,
+#chrome-dismiss:focus-visible { outline: none; }
+
+body.chrome-hidden #chrome-dismiss { display: none; }
+
+body.chrome-hidden #titlebar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body:not(.chrome-hidden) #percent { visibility: hidden; }
+body:not(.chrome-hidden) #scrub-row { display: flex; }
+
+body.chrome-hidden #footer {
+  height: 5.5rem;
+  min-height: 0;
+  padding: 0 8% 0.35rem;
+  place-items: end center;
+  background: transparent;
+  pointer-events: none;
+}
+
+#settings-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+}
+
+#settings-backdrop[hidden] { display: none; }
+
+#settings {
+  position: absolute;
+  top: 3.4rem;
+  right: 1rem;
+  z-index: 6;
+  width: max-content;
+  min-width: 16.5rem;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.4rem 1rem 0.9rem;
+  background: #fff;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+}
+
+#settings[hidden] { display: none; }
+
+#settings fieldset {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+#settings legend {
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+#settings button {
+  margin: 0 0.3rem 0 0;
+  padding: 0.25rem 0.45rem;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+}
+
+#settings button[aria-pressed="true"] { border-bottom-color: currentColor; }
+
+#font-label {
+  display: inline-block;
+  min-width: 3rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+#faces {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+#faces button {
+  margin: 0;
+  padding: 0.15rem 0;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+#faces [data-face-choice="serif"] { font-family: Georgia, "Iowan Old Style", Palatino, serif; }
+#faces [data-face-choice="sans"] { font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; }
+#faces [data-face-choice="dyslexic"] { font-family: "OpenDyslexic", sans-serif; }
+
+#sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+}
+
+#sidebar-backdrop[hidden] { display: none; }
+
+#sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: min(230px, 72vw);
+  background: #6b6b6b;
+  color: #ddd;
+  transform: translateX(-105%);
+  transition: transform 0.35s ease;
+}
+
+#sidebar.open { transform: none; }
+
+#panels {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  background: #4e4e4e;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+#panels button {
+  padding: 0.15rem 0.2rem;
+  background: none;
+  border: 0;
+  color: #ccc;
+  cursor: pointer;
+}
+
+#close-sidebar {
+  margin-right: 0.35rem;
+  padding-top: 0;
+  font-size: 1.45rem;
+  line-height: 0.8;
+}
+
+#panels button[aria-pressed="true"],
+#panels button:hover { color: #fff; }
+
+.side-view {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem 1.1rem 2.5rem;
+}
+
+.side-view[hidden] { display: none; }
+
+#toc-view,
+#toc-view ul,
+#search-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#toc-view a {
+  display: block;
+  padding: 0.08rem 0.35rem;
+  border-radius: 0.2rem;
+  color: #aaa;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+#search-results a {
+  display: block;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  color: #aaa;
+  text-decoration: none;
+}
+
+#toc-view a:hover,
+#search-results a:hover { color: #f1f1f1; }
+
+#toc-view a[aria-current="true"] {
+  color: #fff;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+#toc-view li { margin: 0; }
+#search-results li { margin: 0 0 0.85rem; }
+
+#toc-view .toc-children {
+  margin: 0;
+  padding-left: 0.7rem;
+}
+
+#search-box {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #aaa;
+  border-radius: 0;
+  color: #fff;
+}
+
+#search-results p {
+  margin: 0.2rem 0 0;
+  color: #aaa;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.empty-note { margin: 0; color: #aaa; font-style: italic; }
+
+body[data-theme="sepia"] { color-scheme: light; }
+body[data-theme="sepia"] #main { background: #f4ecd8; color: #5b4636; }
+body[data-theme="sepia"] #titlebar,
+body[data-theme="sepia"] #footer,
+body[data-theme="sepia"] #settings { background: #f4ecd8; color: #5b4636; }
+body[data-theme="sepia"] .arrow.shown { color: #c4b49a; }
+
+body[data-theme="night"] { color-scheme: dark; background: #111; }
+body[data-theme="night"] #main { background: #1c1c1c; color: #ddd; }
+body[data-theme="night"] #titlebar,
+body[data-theme="night"] #footer { background: #1c1c1c; color: #ddd; }
+body[data-theme="night"] #settings { background: #2a2a2a; color: #ddd; border-color: #444; }
+body[data-theme="night"] .arrow.shown { color: #777; }
+body[data-theme="night"] #divider { background: #fff; box-shadow: none; }
+
+@media (min-width: 701px) {
+  #main { padding: 5.5rem 0; }
+  #divider { top: 5.5rem; bottom: 5.5rem; }
+}
+
+@media (max-width: 1040px) {
+  #viewer { width: 58%; }
+  #divider { display: none; }
+}
+
+@media (max-width: 700px) {
+  #main { padding-bottom: 2rem; }
+  #viewer { width: 84%; height: 100%; }
+  #metainfo { font-size: 0.82rem; }
+  #fullscreen { display: none; }
+  #chrome-bottom { height: 4rem; }
+  body.chrome-hidden #footer {
+    height: 4rem;
+    padding: 0 8%;
+    place-items: center;
+  }
+  .arrow {
+    top: 46px;
+    bottom: 4rem;
+    width: 16%;
+    height: auto;
+    transform: none;
+  }
+  #prev { left: 0; padding-left: 0.2rem; text-align: left; }
+  #next { right: 0; padding-right: 0.2rem; text-align: right; }
+}
+
+body.chrome-hidden #footer { background: transparent; }
